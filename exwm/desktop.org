@@ -1,0 +1,11 @@
+#+BEGIN_SRC txt :tangle no
+/usr/share/xsessions/exwm.desktop
+[Desktop Entry]
+Name=Exwm
+Comment=This logs you into your Emacs EXWM Session
+Exec=/etc/X11/Sessions/exwm
+TryExec=/etc/X11/Sessions/exwm
+# no icon yet,  from Config.org
+Icon=
+Type=Application
+#+END_SRC

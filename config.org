@@ -1,0 +1,621 @@
+* Below appears to be the way to switch off the section at the moment
+
+#+BEGIN_SRC elisp :tangle no
+#~/.doom.d/config.el
+;; Dont put this
+#+END_SRC
+
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(defun gcj/run-in-background (command)
+  ((let command-parts (split-string command "[ ]+"))
+   (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+#+END_SRC
+
+* The core look and fill of the environment
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+
+                                        ;(setq doom-leader-key "s-SPC"
+                                        ;      doom-localleader-key "s-\\")
+
+(setq! byte-compile-warnings '(cl-functions))
+(defvar gcj/font-default-font-size 12)
+(defvar gcj/font-default-variable-font-size 12)
+(defvar gcj/font-big-variable-font-size 15)
+(defvar gcj/font-main-font "Fira Code Retina")
+(defvar gcj/font-variable-font "Cantarell")
+
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+;;(tooltip-mode -1)
+(set-fringe-mode 5)
+;;(setq! visible-bell t)
+
+(setq! doom-scratch-initial-major-mode 'lisp-interaction-mode)
+
+(setenv "PAGER" "cat")
+
+(setq! user-full-name "Glen Jones"
+       user-mail-address "glen.c.jones@gmail.com")
+
+(setq! doom-font (font-spec :family gcj/font-main-font :size gcj/font-default-font-size )
+       doom-variable-pitch-font (font-spec :family gcj/font-variable-font ) ; inherits `doom-font''s :size
+       doom-unicode-font (font-spec :family "Input Mono Narrow" :size gcj/font-default-font-size)
+       doom-big-font (font-spec :family gcj/font-main-font  :size gcj/font-big-variable-font-size))
+
+(require 'doom-opera-theme)
+(setq! doom-theme 'doom-opera)
+
+;; This determines the style of line numbers in effect. If set to `nil', line
+;; numbers are disable-mousebled. For relative line numbers, set this to `relative'.
+(setq display-line-numbers-type nil)
+
+;; If not in xterm then switch off the mouse this typically
+;; happens when in exwm
+;; NOTE: Look for seperate TERM i think in future
+;; to drive exwm as a special terminal
+;;(if (eq (getenv "TERM" ) "xterm-emacs" )
+;;    nil
+;;  ( lambda ()
+;;    (interactive)
+;;    (use-package! disable-mouse)
+;;    (disable-mouse-global-mode)
+;;    )
+;;  )
+
+(use-package! disable-mouse)
+(disable-mouse-global-mode)
+
+;;(setq company-idle-delay 1)
+;;(setq lsp-ui-sideline-enable nil)
+;;(setq lsp-enable-symbol-highlighting nil)
+;;(setq evil-ex-substitute-global t)
+#+END_SRC
+
+* Std File location of where my stuff is.
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(add-load-path! "~/projects/conf/doom-snippets")
+(setq! org-directory "~/org/")
+
+(setq! projectile-project-search-path ( cons "~/src" () ) )
+#+END_SRC
+
+* DIRED Modifications
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(use-package! dired-collapse)
+(use-package! dired-hide-dotfiles)
+
+(defun gcj/dired ()
+  "GCJ Hide stuff"
+  (dired-hide-dotfiles-mode)
+  (dired-collapse-mode)
+  )
+
+(add-hook! 'dired-mode-hook 'gcj/dired)
+#+END_SRC
+
+* Edwina configuration
+
+The following config works cleanly with Doom
+The following line
+  ;;  (setq! display-buffer-base-action '(display-buffer-below-selected))
+ causes an issue when opening an I buffer, so I switched it off (removed it)
+
+ Lots of duplication in the map the below map seems to be all I need.
+
+ The autostack seems to work well, but evil window movement replicated some of the window navigation
+ and seems to have more or equivalent commands.
+Open season with this at the moment.
+ 
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(use-package! edwina
+  :config
+  ;; (setq! display-buffer-base-action '(display-buffer-below-selected))
+
+  ;; The above seems to now work preventing the mode map being called and added to
+  ;; the keymap list
+  (defun edwina--init ()
+    "Initialize command `edwina-mode'."
+    (print! "Simplified Edwina init")
+    (message "Simplified Edwina init")
+    (advice-add #'display-buffer :around #'edwina--display-buffer)
+    (unless (assoc 'edwina-mode mode-line-misc-info)
+      (push '(edwina-mode (:eval (edwina-mode-line-indicator)))
+            (cdr (last mode-line-misc-info))))
+    (edwina-arrange))
+
+  (map! :leader
+        (:prefix ("e" . "Edwina")
+         :desc "Toggle Edwina" "e" #'edwina-mode
+         :desc "Arrange" "r" #'edwina-arrange
+         :desc "Next Window" "h" #'edwina-select-next-window
+         :desc "Prev Window" "l" #'edwina-select-previous-window
+         :desc "Swap Next" "L" #'edwina-swap-next-window
+         :desc "Swap Prev" "H" #'edwina-swap-previous-window
+         :desc "Dec MFact" "-" #'edwina-dec-mfact
+         :desc "Inc MFact" "=" #'edwina-inc-mfact
+         :desc "Dec Master" "_" #'edwina-dec-nmaster
+         :desc "Inc Master" "+" #'edwina-inc-nmaster
+         :desc "Del Window" "d" #'edwina-delete-window
+         :desc "Zoom on Window" "z" #'edwina-zoom
+         ))
+
+  (edwina-mode 1)
+  )
+#+END_SRC
+
+* Create tags 
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(defun gcj/create-tags (dir-name)
+  "Create tags file."
+  (interactive "DDirectory: ")
+  (shell-command
+   (format "/home/gjones/.local/bin/ct.sh %s" dir-name)))
+
+
+(setenv "BASH_ENV" "~/.bashrc")
+
+                                        ;(map! :nv "C-=" #'er/contract-region
+                                        ;      :nv "C-+" #'er/expand-region)
+#+END_SRC
+
+* Create Keymaps required
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+#+END_SRC
+* EXWM
+** gcj/exwm library
+
+#+INCLUDE: "~/.doom.d/lib/gcj-exwm.org"
+
+** Create the emacs window manager exwm
+
+https://gitlab.com/dwt1/dotfiles/-/blob/master/.doom.d/config.org
+https://www.youtube.com/watch?v=GJjjflU67tE
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-package-core ()
+      (message "Use package exwm")
+      (use-package! exwm)
+
+      ;; Using Polybar so dont need this
+      ;;      (use-package! exwm-systemtray)
+      ;;      (exwm-systemtray-enable)
+      (use-package! exwm-randr)
+      (exwm-randr-enable)
+
+      (setq! exwm-systemtray-height 20)
+
+      (add-hook! 'exwm-randr-screen-change-hook
+        (lambda ()
+          (progn
+            (message "exwm-randr-screen-change-hook" )
+            (start-process-shell-command
+             "xrandr" nil "xrandr --output DisplayPort-0 --mode 1920x1080 --pos 0x0 --rotate normal
+                                     --output DisplayPort-1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal
+                                     --output HDMI-A-0 --mode 1920x1080 --pos 3840x0 --rotate normal"))))
+
+      (setq! exwm-workspace-number 10
+             exwm-randr-workspace-output-plist '(0 "DisplayPort-0"
+                                                   1 "DisplayPort-1"
+                                                   2 "HDMI-A-0"))
+
+      (start-process-shell-command "xrandr" nil "xrandr --output Virtual-1 --primary --mode 2048x1152 --pos 0x0 --rotate normal")
+      ))
+#+END_SRC
+
+** EXWM Keyboard settings
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-keyboard-conf ()
+      (message "Configuring exwm keyboard!")
+      (setq exwm-input-prefix-keys '(?\M-x
+                                     ?\M-:
+                                     ?\s-\ )
+            exwm-input-simulation-keys '(([?\s-F] . [?\C-f]))
+            exwm-input-global-keys '(([?\M-\s-7] . (lambda (command)
+                                                     (interactive (list (read-shell-command "$ ")))
+                                                     (start-process-shell-command command nil command)))
+                                     ;; splits
+                                     ([?\s-v] . evil-window-vsplit)
+                                     ([?\s-z] . evil-window-split)
+                                     ;; managing workspaces
+                                     ([?\s-w] . exwm-workspace-switch)
+                                     ([?\s-W] . exwm-workspace-swap)
+                                     ([?\s-\C-w] . exwm-workspace-move)
+                                     ;; essential programs
+                                     ([?\s-d] . dired)
+                                     ([?\s-t] . +vterm/toggle)
+                                     ([?\s-\;] . pp-eval-expression)
+                                     ;; killing buffers and windows
+                                     ([?\s-b] . ibuffer)
+                                     ([?\s-B] . kill-current-buffer)
+                                     ([?\s-C] . +workspace/close-window-or-workspace)
+                                     ([?\s-x] . doom/open-scratch-buffer)
+                                     ;; change window focus with super+h,j,k,l
+                                     ([?\s-h] . evil-window-left)
+                                     ([?\s-j] . evil-window-next)
+                                     ([?\s-k] . evil-window-prev)
+                                     ([?\s-l] . evil-window-right)
+                                     ;; move windows around using SUPER+SHIFT+h,j,k,l
+                                     ([?\s-H] . +evil/window-move-left)
+                                     ([?\s-J] . +evil/window-move-down)
+                                     ([?\s-K] . +evil/window-move-up)
+                                     ([?\s-L] . +evil/window-move-right)
+                                     ;; switch workspace with SUPER+{0-9]
+                                     ([?\s-0] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
+                                     ([?\s-1] . (lambda () (interactive) (exwm-workspace-switch-create 1)))
+                                     ([?\s-2] . (lambda () (interactive) (exwm-workspace-switch-create 2)))
+                                     ([?\s-3] . (lambda () (interactive) (exwm-workspace-switch-create 3)))
+                                     ([?\s-4] . (lambda () (interactive) (exwm-workspace-switch-create 4)))
+                                     ([?\s-5] . (lambda () (interactive) (exwm-workspace-switch-create 5)))
+                                     ([?\s-6] . (lambda () (interactive) (exwm-workspace-switch-create 6)))
+                                     ([?\s-7] . (lambda () (interactive) (exwm-workspace-switch-create 7)))
+                                     ([?\s-8] . (lambda () (interactive) (exwm-workspace-switch-create 8)))
+                                     ([?\s-9] . (lambda () (interactive) (exwm-workspace-switch-create 9)))
+                                     ;; move window workspace with SUPER+SHIFT+{0-9}
+                                     ([?\s-\)] . (lambda () (interactive) (exwm-workspace-move-window 0)))
+                                     ([?\s-!] . (lambda () (interactive) (exwm-workspace-move-window 1)))
+                                     ([?\s-\"] . (lambda () (interactive) (exwm-workspace-move-window 2)))
+                                     ([?\s-£] . (lambda () (interactive) (exwm-workspace-move-window 3)))
+                                     ([?\s-$] . (lambda () (interactive) (exwm-workspace-move-window 4)))
+                                     ([?\s-%] . (lambda () (interactive) (exwm-workspace-move-window 5)))
+                                     ([?\s-^] . (lambda () (interactive) (exwm-workspace-move-window 6)))
+                                     ([?\s-&] . (lambda () (interactive) (exwm-workspace-move-window 7)))
+                                     ([?\s-*] . (lambda () (interactive) (exwm-workspace-move-window 8)))
+                                     ([?\s-\(] . (lambda () (interactive) (exwm-workspace-move-window 9)))
+                                     ;; move floating window to different compass points
+                                     ([?\C-\s-i] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "nw" nil nil )))
+                                     ([?\C-\s-o] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "n" nil nil )))
+                                     ([?\C-\s-p] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "ne" nil nil )))
+                                     ([?\C-\s-j] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "w" nil nil )))
+                                     ([?\C-\s-k] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "c" nil nil )))
+                                     ([?\C-\s-l] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "e" nil nil )))
+                                     ([?\C-\s-n] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "sw" nil nil )))
+                                     ([?\C-\s-m] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "s" nil nil )))
+                                     ([?\C-\s-,] . (lambda () (interactive) (gcj/exwm-pos-at-compass (buffer-name) "se" nil nil )))
+                                     ([?\C-\s-\@] . (lambda ( params )
+                                                      (interactive (list (read-shell-command "\[compass width height\]$ ")))
+                                                      (let* (
+                                                             ( param-list (s-split "\\ " params) )
+                                                             ( compass (car param-list) )
+                                                             ( width (string-to-number (car (cdr param-list))))
+                                                             ( height (string-to-number (car (cdr (cdr param-list)))))
+                                                             )
+                                                        (gcj/exwm-pos-at-compass (buffer-name) compass width height))))
+                                     ;; SUPER+/ switches to char-mode (needed to pass commands in XWindows sometimes)
+                                     ;; SUPER+? switches us back to line-mode
+                                     ([?\s-/] . exwm-input-release-keyboard)
+                                     ([?\s-?] . exwm-reset)
+                                     ;; setting some toggle commands
+                                     ([?\s-H] . exwm-floating-hide)
+                                     ([?\s-f] . exwm-floating-toggle-floating)
+                                     ([?\s-m] . exwm-layout-toggle-mode-line)
+                                     ([f11] . exwm-layout-toggle-fullscreen)))))
+;; Better app launcher
+;; Use package councel in the config:
+;; :custom
+;; (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+;;(exwm-input-set-key (kbd "s-SPC") 'counsel-linux-app)
+;;(exwm-input-set-key (kbd "s-f") 'exwm-layout-toggle-fullscreen)
+#+END_SRC
+
+#+RESULTS:
+
+** EXWM Configure applications
+
+#+BEGIN_SRC elisp :tangle  ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-statup-applications ()
+
+      (message "Configuring exwm applications!")
+      (defun gcj/app-exwm/exwm-start-growl ()
+        (interactive)
+        (message "Applet Growl")
+        (start-process-shell-command "growl" nil "~/.local/bin/gol.applet"))
+
+      (defun gcj/app-exwm/exwm-start-dropbox ()
+        (interactive)
+        (message "Applet dropbox")
+        (start-process-shell-command "dropbox" nil "~/.local/bin/dropbox.applet"))
+
+      (defun gcj/app-exwm/exwm-start-weather ()
+        (interactive)
+        (message "Applet Weather")
+        (start-process-shell-command "weather" nil "~/.local/bin/mateweather.applet"))
+
+      (defun gcj/app-exwm/exwm-start-notification ()
+        (interactive)
+        (message "Applet Notification")
+        (start-process-shell-command "notification" nil "~/.local/bin/notification.applet"))
+
+      (defun gcj/app-exwm/exwm-start-stickynotes ()
+        (interactive)
+        (message "Applet Stick Notes")
+        (start-process-shell-command "stickynotes" nil "~/.local/bin/stickynotes.applet"))
+
+      (defun gcj/app-exwm/exwm-start-wnck ()
+        (interactive)
+        (message "Applet WNCK")
+        (start-process-shell-command "wnck" nil "~/.local/bin/wnck.applet"))
+
+      (defun gcj/app-exwm/exwm-start-owncloud ()
+        (interactive)
+        (message "Aplet Own Cloud")
+        (start-process-shell-command "owncloud" nil "~/.local/bin/owncloud.applet"))
+
+      (defun gcj/app-exwm/exwm-start-clock ()
+        (interactive)
+        (message "Applet Clock")
+        (start-process-shell-command "clock" nil "~/.local/bin/clock.applet"))
+
+      (defun gcj/app-exwm/netflix ()
+        (interactive)
+        (start-process-shell-command "Netflix" "* netflix *" "~/.local/bin/netflix" ))
+
+      (defun gcj/app-exwm/amazonprime ()
+        (interactive)
+        (start-process-shell-command "AmazonPrime" "* amazonprime *" "~/.local/bin/amazon" ))
+
+      (defun gcj/app-exwm/spotify ()
+        (interactive)
+        (start-process-shell-command "Spotify" "* spotify *" "~/.local/bin/spotify" ))
+
+      (defun gcj/app-exwm/disney ()
+        (interactive)
+        (start-process-shell-command "Disney" "* disney *" "~/.local/bin/disney" ))
+
+      (defun gcj/app-exwm/youtube ()
+        (interactive)
+        (start-process-shell-command "YouTube" "* youtube *" "~/.local/bin/youtube" ))
+
+      (defun gcj/app-exwm/calibre ()
+        (interactive)
+        (start-process-shell-command "Calibre" "* calibre *" "calibre" ))
+
+      (defun gcj/app-exwm/firefox ()
+        (interactive)
+        (start-process-shell-command "Firefox" "* firefox *" "firefox" ))
+
+      (defun gcj/app-exwm/discord ()
+        (interactive)
+        (start-process-shell-command "Discord" "* discord *" "discord" ))
+
+      (defun gcj/app-exwm/browser ()
+        (interactive)
+        (start-process-shell-command "Browser" "* browser *" "google-chrome-stable" ))
+
+      (after! exwm
+        (gcj/app-exwm/exwm-start-clock)
+        (gcj/app-exwm/exwm-start-growl)
+        ;;    (gcj/app-exwm/exwm-start-dropbox)
+        (gcj/app-exwm/exwm-start-weather)
+        (gcj/app-exwm/exwm-start-notification)
+        (gcj/app-exwm/exwm-start-stickynotes)
+        (gcj/app-exwm/exwm-start-wnck)
+        ;;    (gcj/app-exwm/exwm-start-owncloud)
+        ;; (setq display-time-day-and-date t
+        ;;       display-time-format "%a %b %d, %Y (%H:%M)"
+        ;;       dmenu-prompt-string "RUN: ")
+        ;; (display-time-mode 1)
+        )))
+#+END_SRC
+
+#+RESULTS:
+
+** EXWM Background and Wallpaper
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-wallpaper ()
+      (interactive)
+      (message "Configuring exwm wallpaper!")
+
+      (defun gcj/exwm-set-wallpaper ()
+        (interactive)
+        (start-process-shell-command "feh" nil  "feh --bg-scale ~/Downloads/gentoo_matrix.jpg"))
+
+      (gcj/exwm-set-wallpaper)
+      (set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+      (add-to-list 'default-frame-alist '(alpha . (95 . 95)))))
+;;(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+;;(add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+END_SRC
+
+** EXWM Eperimental work
+
+#+INCLUDE: "~/.doom.d/private_experimental.org"
+
+** EXWM Hooks and Code to manage windo creation
+
+#+BEGIN_SRC elisp :tangle  ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-window-management ()
+      (interactive)
+      (message "Configuring exwm window management")
+
+      ;; Automatically move EXWM buffer to current workspace when selected
+      (setq exwm-layout-show-all-buffers t)
+      ;; Display all EXWM buffers in every workspace buffer list
+      (setq exwm-workspace-show-all-buffers t)
+
+      (defun gcj/exwm-hook-update-class ()
+        (progn
+          ;;          (message "exwm-hook-update-class %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+          (exwm-workspace-rename-buffer exwm-class-name)))
+
+      (add-hook! 'exwm-update-class-hook 'gcj/exwm-hook-update-class)
+
+      (defun gcj/exwm-floating-window (in-buffer-name pos width height)
+        ;;        (message "floating window %s %s %s %s" in-buffer-name pos width height)
+        (with-current-buffer (window-buffer)
+          (when (derived-mode-p 'exwm-mode)
+            (when (not exwm--floating-frame)
+              (with-current-buffer (window-buffer)
+                (exwm-floating--set-floating exwm--id)
+                (exwm-workspace-rename-buffer in-buffer-name)
+                (gcj/exwm-pos-at-compass in-buffer-name pos width height )
+                )
+              ))))
+
+      (defun gcj/exwm-hook-update-title ()
+        (message "exwm-hook-update-title [%s] [%s] [%s] [%s] [%s]" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        (cond
+         (( string-match-p "Firefox" exwm-title ) ( exwm-workspace-rename-buffer (format "@FF:%s" exwm-title) ))
+         (( string-match-p "Netflix" exwm-title ) (gcj/exwm-floating-window "netflix" "se" 450 250 ))
+         (( string-match-p (regexp-quote "Prime Video") exwm-title ) (gcj/exwm-floating-window "amazonprime" "se" 450 260 ))
+         (( string-match-p (regexp-quote "Disney\+") exwm-title ) (gcj/exwm-floating-window "disney" "se" 450 260 ))
+         (( string-match-p (regexp-quote "Spotify") exwm-title ) (gcj/exwm-floating-window "spotify" "ne" 450 260 ))
+         (( string-match-p exwm-title "YouTube") (gcj/exwm-floating-window "youtube" "se" 500 310 ))
+         (( string-match-p exwm-title "Calibre") (gcj/exwm-floating-window "calibre" "c" 800 810 ))
+         )
+        )
+
+      ;; When window title updates, use it to set the buffer name
+      (add-hook! '(exwm-update-title-hook) :append #'gcj/exwm-hook-update-title)
+      ))
+#+END_SRC
+
+** EXWM Hook to manage window as they are created
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-window-message ()
+      (interactive)
+      (message "Configuring exwm window message")
+
+      (defun gcj/exwm-hook-manage-finish ()
+        (interactive)
+        ;;        (message "exwm-hook-manage-finish %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        (exwm-layout-hide-mode-line))
+
+
+      (defun gcj/exm-hook-floating-setup ()
+        (interactive)
+        ;;        (message "exwm-hook-floating-setup %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        (exwm-layout-hide-mode-line))
+
+      (defun gcj/exm-hook-floating-exit ()
+        (interactive)
+        ;;        (message "exwm-hook-floating-exit %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        (exwm-layout-hide-mode-line))
+
+      (add-hook! 'exwm-floating-setup-hook #'gcj/exm-hook-floating-setup)
+      (add-hook! 'exwm-floating-exit-hook #'gcj/exm-hook-floating-exit)
+      (add-hook! 'exwm-exit-hook
+                 ;;        (message "exwm-hook--exit %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+                 )
+
+      (add-hook! 'exwm-input--event-hook
+        (progn
+          ;;          (message "exwm-hook-input-event %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+          ;;  (debug)
+          )
+        )
+
+      ;; Configure windows as they're created
+      (add-hook! 'exwm-manage-finish-hook #'gcj/exwm-hook-manage-finish)
+      ))
+#+END_SRC
+
+** EXWM Manage the X window environment
+
+https://github.com/DamienCassou/desktop-environment
+
+#+BEGIN_SRC elisp :tangle no
+;; This is not working yet
+#~/.doom.d/config.el
+(use-package! desktop-environment
+  :after exwm
+  :config (desktop-environment-mode)
+  :custom
+  (desktop-environment-brightness-small-increment "2%+")
+  (desktop-environment-brightness-small-decrement "2%-")
+  (desktop-environment-brightness-normal-increment "5%+")
+  (desktop-environment-brightness-normal-decrement "5%-"))
+#+END_SRC
+
+** Applications required when inside EXWM
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-applications()
+      (message "doapps")
+      ))
+#+END_SRC
+
+** EXWM Bootup EXWM and pull the configuratin together based on existance of functions
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (progn
+      (message "Bootstrap EXWM components")
+      (defun gcj/exwm-init-hook ()
+        (interactive)
+        (message "EWMM Init Hook"))
+
+      (defun gcj/exwm-enable ()
+        (interactive)
+        (message "Configuring EXWM!")
+        (gcj/exwm-package-core)
+        (if (fboundp 'gcj/exwm-wallpaper) (gcj/exwm-wallpaper))
+        (if (fboundp 'gcj/exwm-keyboard-conf) (gcj/exwm-keyboard-conf))
+        (if (fboundp 'gcj/exwm-statup-applications) (gcj/exwm-statup-applications))
+        (if (fboundp 'gcj/exwm-window-management) (gcj/exwm-window-management))
+        (if (fboundp 'gcj/exwm-window-message) (gcj/exwm-window-message))
+        (if (fboundp 'gcj/exwm-library) (gcj/exwm-library))
+        (if (fboundp 'gcj/exwm-applications) (gcj/exwm-applications))
+        (if (fboundp 'gcj/exwm-experimental) (gcj/exwm-experimental))
+        (if (fboundp 'gcj/exwm-init-hook) (add-hook! 'exwm-init-hook #'gcj/exwm-init-hook) )
+        ;;(setq! exwm-debug t)
+        (message "Starting EXWM!")
+        (exwm-enable))
+      )
+  )
+
+(message "Term is set to [%s]" (getenv "TERM"))
+(if (equal (getenv "TERM") "xterm-emacs") (gcj/exwm-enable))
+#+END_SRC
+
+#+BEGIN_SRC txt :tangle ~/.Xresources
+#Xft.dpi: 380
+#+END_SRC
+
+#+BEGIN_SRC txt :tangle ~/.Xkbmap
+gb
+#+END_SRC
+
+#+BEGIN_SRC txt :tangle ~/.Xmodmap
+clear lock
+clear control
+keycode 66 = Control_L
+add control = Control_L
+add Lock = Control_R
+
+#+END_SRC
+
+* Require access
+
+# #INCLUDE: "~/.doom.d/exwm/exwm.org"
+# #INCLUDE: "~/.doom.d/exwm/desktop.org"
+
+* My Key bindings
+#+BEGIN_SRC elisp :tangle no
+#~/.doom.d/config.el
+(message "Hello")
+#+END_SRC
+
+* Open Emacs full screen
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+;;(setq evil-split-window-below t evil-vsplit-window-right t)
+(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+#+END_SRC

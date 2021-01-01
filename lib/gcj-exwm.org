@@ -1,0 +1,79 @@
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(if (equal (getenv "TERM") "xterm-emacs")
+    (defun gcj/exwm-library ()
+      ;; N E S W   NE SE SW NW
+      (setq gcj/exwm-border-top 60
+            gcj/exwm-border-bottom 45
+            gcj/exwm-border-left 40
+            gcj/exwm-border-right 40)
+
+      (defun gcj/exwm-get-frame-dimensions ()
+        (interactive)
+        (if (and (derived-mode-p 'exwm-mode) exwm--floating-frame)
+            (let* ((floating-container (frame-parameter exwm--floating-frame
+                                                        'exwm-container))
+                   (geometry (xcb:+request-unchecked+reply exwm--connection
+                                 (make-instance 'xcb:GetGeometry
+                                                :drawable floating-container))))
+              (with-slots (width height) geometry (list width height)))
+          '()))
+
+
+      (defun gcj/exwm-set-geometry-size( buffer-name x y in-width in-height )
+        (interactive)
+        (with-current-buffer (get-buffer buffer-name)
+          (let* ((frame exwm--floating-frame)
+                 (exwm-id (exwm--buffer->id (get-buffer buffer-name)))
+                 (container-or-id (frame-parameter exwm--floating-frame 'exwm-container))
+
+                 (default-frame-dimensions (gcj/exwm-get-frame-dimensions))
+                 (default-frame-width (if default-frame-dimensions (car default-frame-dimensions) 500))
+                 (default-frame-height (if default-frame-dimensions (car (cdr default-frame-dimensions)) 450))
+
+                 (in-frame-width (if (and (integerp in-width) (>= in-width 0)) in-width default-frame-width ))
+                 (in-frame-height (if (and (integerp in-height) (>= in-height 0)) in-height default-frame-height))
+
+                 (cfg-border-width (plist-get exwm--configurations 'border-width))
+                 (border-width (if (and (integerp cfg-border-width) (>= cfg-border-width 0)) cfg-border-width exwm-floating-border-width))
+                 )
+            (progn
+              (exwm--set-geometry container-or-id x y in-frame-width in-frame-height)
+              (exwm--set-geometry exwm-id (+ x border-width) (+ y border-width) (- in-frame-width (* border-width 2)) (- in-frame-height (* border-width 2) ))
+              (xcb:flush exwm--connection)))))
+
+      (defun gcj/exwm-pos-at-compass( buffer-name compass in-width in-height)
+        (interactive)
+        (let* (
+               (screen-dimensions (with-slots (width height) (exwm-workspace--get-geometry nil) (list width height)))
+               (screen-width (car screen-dimensions) )
+               (screen-height (car (cdr screen-dimensions)))
+
+               (default-frame-dimensions (gcj/exwm-get-frame-dimensions))
+               (default-frame-width (if default-frame-dimensions (car default-frame-dimensions) 500))
+               (default-frame-height (if default-frame-dimensions (car (cdr default-frame-dimensions)) 450))
+
+               (x 0)
+               (y 0)
+               (cfg-frame-width (plist-get exwm--configurations 'width))
+               (in-frame-width (if (and (integerp in-width) (>= in-width 0)) in-width (if (and (integerp cfg-frame-width) (>= cfg-frame-width 0)) cfg-frame-width default-frame-width)))
+               (cfg-frame-height (plist-get exwm--configurations 'height))
+               (in-frame-height (if (and (integerp in-height) (>= in-height 0)) in-height (if (and (integerp cfg-frame-height) (>= cfg-frame-height 0)) cfg-frame-height default-frame-height)))
+               (mid-screen-x (/ screen-width 2))
+               (mid-screen-y (/ screen-height 2))
+               (mid-buffer-x (/ in-frame-width 2))
+               (mid-buffer-y (/ in-frame-height 2))
+               )
+          (progn
+            (cond
+             ((equal compass "n") (progn (setq x (- mid-screen-x mid-buffer-x) y gcj/exwm-border-top)))
+             ((equal compass "e") (progn (setq x (- screen-width (+ gcj/exwm-border-right in-frame-width)) y (- mid-screen-y mid-buffer-y))))
+             ((equal compass "s") (progn (setq x (- mid-screen-x mid-buffer-x) y (- screen-height (+ gcj/exwm-border-bottom in-frame-height)))))
+             ((equal compass "w") (progn (setq x gcj/exwm-border-left y (- mid-screen-y mid-buffer-y))))
+             ((equal compass "ne") (progn (setq x (- screen-width (+ gcj/exwm-border-right in-frame-width)) y gcj/exwm-border-top)))
+             ((equal compass "se") (progn (setq x (- screen-width (+ gcj/exwm-border-right in-frame-width)) y (- screen-height (+ gcj/exwm-border-bottom in-frame-height)))))
+             ((equal compass "sw") (progn (setq x gcj/exwm-border-left y (- screen-height (+ gcj/exwm-border-bottom in-frame-height)))))
+             ((equal compass "nw") (progn (setq x gcj/exwm-border-left y gcj/exwm-border-top)))
+             ((equal compass "c") (progn (setq x (- mid-screen-x mid-buffer-x) y (- mid-screen-y mid-buffer-y)))))
+            (gcj/exwm-set-geometry-size buffer-name x y in-frame-width in-frame-height))))
+      ))
+#+END_SRC
