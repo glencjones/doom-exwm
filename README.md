@@ -21,4 +21,4 @@ X windows code/files included.  Reminder I use term type to switch on and off ex
 
 Like I say a bit rough first cut, will try to improve documentation as I go.
 
-will revist EXWM, Doom and Edwina navigation maps to merge them.
+will revisit EXWM, Doom and Edwina navigation maps to merge them.
