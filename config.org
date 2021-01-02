@@ -38,7 +38,7 @@
 (setenv "PAGER" "cat")
 
 (setq! user-full-name "Glen Jones"
-       user-mail-address "glen.c.jones@gmail.com")
+       user-mail-address "glen.c.jones")
 
 (setq! doom-font (font-spec :family gcj/font-main-font :size gcj/font-default-font-size )
        doom-variable-pitch-font (font-spec :family gcj/font-variable-font ) ; inherits `doom-font''s :size
