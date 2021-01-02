@@ -12,7 +12,7 @@ Minimal checks are performed as it's very much a work in progress.  Edwina was a
 I have an open opinion at the moment as currently I have 3 navigations std doom, exwm and edwina all as far as I can see doing
 the same thing.   I have set up Edwina to work both in doom only and X.  So it's questionable if the maps for Edwina need to be used.
 
-Currently I have created a map using the Doom macros, that works well when not in exwm, again you have the evile window functions.
+Currently I have created a map using the Doom macros, that works well when not in exwm, again you have the evil window functions.
 
 Early days with my Lisp so dont expect too much, I'm sure it will get better.
 
