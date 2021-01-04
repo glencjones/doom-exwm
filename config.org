@@ -1,10 +1,13 @@
 * Below appears to be the way to switch off the section at the moment
 
+#+BEGIN_QUOTE
 #+BEGIN_SRC elisp :tangle no
 #~/.doom.d/config.el
 ;; Dont put this
 #+END_SRC
+#+END_QUOTE
 
+* Function to run in background, will move to its own location.
 
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
 (defun gcj/run-in-background (command)
@@ -171,6 +174,7 @@ Open season with this at the moment.
 
 * EXWM
 ** gcj/exwm library experimental code this will get moved around at some point.
+
 #+BEGIN_QUOTE
 #+INCLUDE: "~/.doom.d/lib/gcj-exwm.org"
 #+END_QUOTE
@@ -179,7 +183,10 @@ Open season with this at the moment.
 
 ** Create the emacs window manager exwm
 
+Some reference links
+
 https://gitlab.com/dwt1/dotfiles/-/blob/master/.doom.d/config.org
+
 https://www.youtube.com/watch?v=GJjjflU67tE
 
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
@@ -215,6 +222,8 @@ https://www.youtube.com/watch?v=GJjjflU67tE
 #+END_SRC
 
 ** EXWM Keyboard settings
+
+Basic keymap with additional functions for moving floating screens around.
 
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
 (if (equal (getenv "TERM") "xterm-emacs")
@@ -432,7 +441,7 @@ https://www.youtube.com/watch?v=GJjjflU67tE
 ** EXWM Experimental work not yet viable or working
 
 #+BEGIN_QUOTE
-#+INCLUDE: "~/.doom.d/private_experimental.org"
+# + INCLUDE: "~/.doom.d/private_experimental.org"
 #+END_QUOTE
 
 #+INCLUDE: "~/.doom.d/private_experimental.org"
@@ -613,6 +622,8 @@ add Lock = Control_R
 
 * Require root access
 
+Need to add in BEGIN Shell block, to sudo and update these root owned locations
+
 # #INCLUDE: "~/.doom.d/exwm/exwm.org"
 # #INCLUDE: "~/.doom.d/exwm/desktop.org"
 
@@ -620,7 +631,7 @@ add Lock = Control_R
 
 #+BEGIN_SRC elisp :tangle no
 #~/.doom.d/config.el
-(message "Hello")
+(message "loaded config.el")
 #+END_SRC
 
 * Open Emacs full screen, I have switched on double buffering for a while due to a glitch I'm testing
