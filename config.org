@@ -12,6 +12,14 @@
    (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
 #+END_SRC
 
+* Private User info only, included using the following.
+
+#+BEGIN_QUOTE
+#+INCLUDE "~/.doom.d/private_contact.org"
+#+END_QUOTE
+
+#+INCLUDE "~/.doom.d/private_contact.org"
+
 * The core look and fill of the environment
 
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
@@ -36,9 +44,6 @@
 (setq! doom-scratch-initial-major-mode 'lisp-interaction-mode)
 
 (setenv "PAGER" "cat")
-
-(setq! user-full-name "Glen Jones"
-       user-mail-address "glen.c.jones@gmail.com")
 
 (setq! doom-font (font-spec :family gcj/font-main-font :size gcj/font-default-font-size )
        doom-variable-pitch-font (font-spec :family gcj/font-variable-font ) ; inherits `doom-font''s :size
@@ -164,12 +169,11 @@ Open season with this at the moment.
                                         ;      :nv "C-+" #'er/expand-region)
 #+END_SRC
 
-* Create Keymaps required
-
-#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
-#+END_SRC
 * EXWM
-** gcj/exwm library
+** gcj/exwm library experimental code this will get moved around at some point.
+#+BEGIN_QUOTE
+#+INCLUDE: "~/.doom.d/lib/gcj-exwm.org"
+#+END_QUOTE
 
 #+INCLUDE: "~/.doom.d/lib/gcj-exwm.org"
 
@@ -307,8 +311,6 @@ https://www.youtube.com/watch?v=GJjjflU67tE
 ;;(exwm-input-set-key (kbd "s-f") 'exwm-layout-toggle-fullscreen)
 #+END_SRC
 
-#+RESULTS:
-
 ** EXWM Configure applications
 
 #+BEGIN_SRC elisp :tangle  ~/.doom.d/config.el
@@ -408,8 +410,6 @@ https://www.youtube.com/watch?v=GJjjflU67tE
         )))
 #+END_SRC
 
-#+RESULTS:
-
 ** EXWM Background and Wallpaper
 
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
@@ -429,11 +429,15 @@ https://www.youtube.com/watch?v=GJjjflU67tE
 ;;(add-to-list 'default-frame-alist '(fullscreen . maximized))
 #+END_SRC
 
-** EXWM Eperimental work
+** EXWM Experimental work not yet viable or working
+
+#+BEGIN_QUOTE
+#+INCLUDE: "~/.doom.d/private_experimental.org"
+#+END_QUOTE
 
 #+INCLUDE: "~/.doom.d/private_experimental.org"
 
-** EXWM Hooks and Code to manage windo creation
+** EXWM Hooks and Code to manage window creation
 
 #+BEGIN_SRC elisp :tangle  ~/.doom.d/config.el
 (if (equal (getenv "TERM") "xterm-emacs")
@@ -466,7 +470,7 @@ https://www.youtube.com/watch?v=GJjjflU67tE
               ))))
 
       (defun gcj/exwm-hook-update-title ()
-        (message "exwm-hook-update-title [%s] [%s] [%s] [%s] [%s]" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        ;;        (message "exwm-hook-update-title [%s] [%s] [%s] [%s] [%s]" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
         (cond
          (( string-match-p "Firefox" exwm-title ) ( exwm-workspace-rename-buffer (format "@FF:%s" exwm-title) ))
          (( string-match-p "Netflix" exwm-title ) (gcj/exwm-floating-window "netflix" "se" 450 250 ))
@@ -483,7 +487,7 @@ https://www.youtube.com/watch?v=GJjjflU67tE
       ))
 #+END_SRC
 
-** EXWM Hook to manage window as they are created
+** EXWM Hooks to manage windows as they are created
 
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
 (if (equal (getenv "TERM") "xterm-emacs")
@@ -616,6 +620,6 @@ add Lock = Control_R
 
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
 ;;(setq evil-split-window-below t evil-vsplit-window-right t)
-(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
+;;(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 #+END_SRC
