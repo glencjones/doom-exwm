@@ -103,8 +103,15 @@
   (dired-collapse-mode)
   )
 
+;; This is more useful than hardlink
+(map! :map dired-mode-map
+      :nv  "H" #'dired-hide-dotfiles-mode)     ; normal+visual
+
 (add-hook! 'dired-mode-hook 'gcj/dired)
 #+END_SRC
+
+#+RESULTS:
+| dired-extra-startup | doom--recentf-add-dired-directory-h | doom-modeline-set-project-modeline | gcj/dired | +dired-disable-gnu-ls-flags-in-tramp-buffers-h | dired-omit-mode | all-the-icons-dired-mode | diff-hl-dired-mode-unless-remote | diredfl-mode |
 
 * Edwina configuration
 
@@ -115,10 +122,11 @@ The following line
 
  Lots of duplication in the map the below map seems to be all I need.
 
- The autostack seems to work well, but evil window movement replicated some of the window navigation
+ The auto-stack seems to work well, but evil window movement replicated some of the window navigation
  and seems to have more or equivalent commands.
-Open season with this at the moment.
- 
+ Open season with this at the moment.
+
+ noticing some issues that temp buffer are not appearing in doom, will continue to test.
 #+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
 (use-package! edwina
   :config
@@ -135,6 +143,29 @@ Open season with this at the moment.
       (push '(edwina-mode (:eval (edwina-mode-line-indicator)))
             (cdr (last mode-line-misc-info))))
     (edwina-arrange))
+
+  ;; My origional attempt at being more sophisticated with
+  ;; confirming what doom buffers I didn't want changed.
+  ;; (if ( or (+popup-window-p in-buffer)
+  ;;          (+popup-buffer-p in-buffer)
+  ;;         ;; (+popup-mode)
+  ;;          )
+  ;;     (progn
+  ;;       (message "Filter this buffer %s" in-buffer)
+  ;;       t)
+  ;;   (progn
+  ;;     (message "Dont Filter %s" in-buffer)
+  ;;     nil)
+
+  ;; Remeber to use this you'll need to use the following github glencjones/edwina
+  ;; In doom package.el this would require:
+  ;; (package! edwina :recipe (:host github :repo "glencjones/edwina") )
+  (defun doom-popup-filter (in-buffer)
+    (message "[EDWINA] checking buffer [%s] [%s] [%s] [%s]" (type-of in-buffer) in-buffer (+popup-buffer-p in-buffer) +popup-mode)
+    (if (string-match-p "popup" (buffer-name in-buffer) ) t nil)
+    )
+
+  (setq! edwina-buffer-filter #'doom-popup-filter)
 
   (map! :leader
         (:prefix ("e" . "Edwina")
@@ -155,6 +186,9 @@ Open season with this at the moment.
   (edwina-mode 1)
   )
 #+END_SRC
+
+#+RESULTS:
+: t
 
 * Create tags 
 
@@ -401,7 +435,11 @@ Basic keymap with additional functions for moving floating screens around.
 
       (defun gcj/app-exwm/browser ()
         (interactive)
-        (start-process-shell-command "Browser" "* browser *" "google-chrome-stable" ))
+        (start-process-shell-command "luakit" "* luakit *" "luakit http://www.google.com" ))
+
+      (defun gcj/app-exwm/chrome ()
+        (interactive)
+        (start-process-shell-command "chrome" "* chrome *" "google-chrome-stable" ))
 
       (after! exwm
         (gcj/app-exwm/exwm-start-clock)
@@ -473,13 +511,14 @@ Basic keymap with additional functions for moving floating screens around.
             (when (not exwm--floating-frame)
               (with-current-buffer (window-buffer)
                 (exwm-floating--set-floating exwm--id)
+                (exwm-layout-hide-mode-line)
                 (exwm-workspace-rename-buffer in-buffer-name)
                 (gcj/exwm-pos-at-compass in-buffer-name pos width height )
                 )
               ))))
 
       (defun gcj/exwm-hook-update-title ()
-        ;;        (message "exwm-hook-update-title [%s] [%s] [%s] [%s] [%s]" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        ;; (message "exwm-hook-update-title [%s] [%s] [%s] [%s] [%s]" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
         (cond
          (( string-match-p "Firefox" exwm-title ) ( exwm-workspace-rename-buffer (format "@FF:%s" exwm-title) ))
          (( string-match-p "Netflix" exwm-title ) (gcj/exwm-floating-window "netflix" "se" 450 250 ))
@@ -506,19 +545,22 @@ Basic keymap with additional functions for moving floating screens around.
 
       (defun gcj/exwm-hook-manage-finish ()
         (interactive)
-        ;;        (message "exwm-hook-manage-finish %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
-        (exwm-layout-hide-mode-line))
+        ;; (message "exwm-hook-manage-finish %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        ;; (exwm-layout-hide-mode-line)
+        )
 
 
       (defun gcj/exm-hook-floating-setup ()
         (interactive)
-        ;;        (message "exwm-hook-floating-setup %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
-        (exwm-layout-hide-mode-line))
+        ;; (message "exwm-hook-floating-setup %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        ;; (exwm-layout-hide-mode-line)
+        )
 
       (defun gcj/exm-hook-floating-exit ()
         (interactive)
-        ;;        (message "exwm-hook-floating-exit %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
-        (exwm-layout-hide-mode-line))
+        ;; (message "exwm-hook-floating-exit %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+        ;; (exwm-layout-hide-mode-line)
+        )
 
       (add-hook! 'exwm-floating-setup-hook #'gcj/exm-hook-floating-setup)
       (add-hook! 'exwm-floating-exit-hook #'gcj/exm-hook-floating-exit)
@@ -528,7 +570,7 @@ Basic keymap with additional functions for moving floating screens around.
 
       (add-hook! 'exwm-input--event-hook
         (progn
-          ;;          (message "exwm-hook-input-event %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
+          ;;  (message "exwm-hook-input-event %s %s %s %s %s" exwm-class-name exwm-title exwm--frame exwm-instance-name exwm-window-type )
           ;;  (debug)
           )
         )
@@ -626,6 +668,14 @@ Need to add in BEGIN Shell block, to sudo and update these root owned locations
 
 # #INCLUDE: "~/.doom.d/exwm/exwm.org"
 # #INCLUDE: "~/.doom.d/exwm/desktop.org"
+
+* Language specific Changes
+
+Spelling is starting to annoy me.
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/config.el
+(add-hook! '(c++-mode-hook) (flyspell-mode -1))
+#+END_SRC
 
 * My Key bindings
 

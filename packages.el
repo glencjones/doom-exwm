@@ -63,4 +63,4 @@
 (package! closure)
 ;;(package! exwm-config)
 (package! expand-region)
-(package! edwina)
+(package! edwina :recipe (:host github :repo "glencjones/edwina") )
