@@ -144,10 +144,11 @@ The following line
             (cdr (last mode-line-misc-info))))
     (edwina-arrange))
 
-  ;; The filter the doom obviously still needs some work
-  ;; +popup-buffer-p appears to return nil when I expect it to be non nil.
-  ;; So a bit more digging here to get this playing well with Doom.
+  ;; The filter for Doom obviously still needs some work.
+  ;; +popup-buffer-p appears to return nil when I expected it to be non nil.
+  ;; So a bit more digging required here to get this playing well with Doom.
   ;; trying the below for now, but pretty sure it can be improved.'
+  ;; COnd at least allows another layer of filtering.
   (defun doom-popup-filter (in-buffer)
     (with-current-buffer in-buffer
       (progn
