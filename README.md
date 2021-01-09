@@ -39,4 +39,4 @@ the same thing.   I have set up Edwina to work both in doom only and X.  So it's
 will revisit EXWM, Doom and Edwina navigation maps to merge them.
 
 _State_
-Very much an Beta release, as I have left some logging in.
+Very much a Beta release, as I have left some logging in.
