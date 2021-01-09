@@ -144,27 +144,32 @@ The following line
             (cdr (last mode-line-misc-info))))
     (edwina-arrange))
 
-  ;; My origional attempt at being more sophisticated with
-  ;; confirming what doom buffers I didn't want changed.
-  ;; (if ( or (+popup-window-p in-buffer)
-  ;;          (+popup-buffer-p in-buffer)
-  ;;         ;; (+popup-mode)
-  ;;          )
-  ;;     (progn
-  ;;       (message "Filter this buffer %s" in-buffer)
-  ;;       t)
-  ;;   (progn
-  ;;     (message "Dont Filter %s" in-buffer)
-  ;;     nil)
-
-  ;; Remeber to use this you'll need to use the following github glencjones/edwina
-  ;; In doom package.el this would require:
-  ;; (package! edwina :recipe (:host github :repo "glencjones/edwina") )
+  ;; The filter the doom obviously still needs some work
+  ;; +popup-buffer-p appears to return nil when I expect it to be non nil.
+  ;; So a bit more digging here to get this playing well with Doom.
+  ;; trying the below for now, but pretty sure it can be improved.'
   (defun doom-popup-filter (in-buffer)
-    (message "[EDWINA] checking buffer [%s] [%s] [%s] [%s]" (type-of in-buffer) in-buffer (+popup-buffer-p in-buffer) +popup-mode)
-    (if (string-match-p "popup" (buffer-name in-buffer) ) t nil)
+    (with-current-buffer in-buffer
+      (progn
+        (message "[EDWINA] checking buffer t[%s] ib[%s] pun[%s] pub[%s] pu[%s] cb[%s] pm[%s]" (type-of in-buffer) in-buffer (+popup-buffer-p (buffer-name in-buffer)) (+popup-buffer-p in-buffer) (+popup-buffer-p) (current-buffer) +popup-mode)
+        (if (or (+popup-buffer-p)
+                (cond
+                 (( string-match-p "popup" (buffer-name in-buffer)) t)
+                 (t nil)
+                 )
+                )
+            (progn
+              (message "Filter %s" (buffer-name in-buffer))
+              t
+              )
+          (progn
+            (message "No Filter %s" (buffer-name in-buffer))
+            nil
+            )
+          )
+        )
+      )
     )
-
   (setq! edwina-buffer-filter #'doom-popup-filter)
 
   (map! :leader
@@ -186,9 +191,6 @@ The following line
   (edwina-mode 1)
   )
 #+END_SRC
-
-#+RESULTS:
-: t
 
 * Create tags 
 
