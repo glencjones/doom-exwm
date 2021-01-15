@@ -155,6 +155,7 @@ The following line
         (if (or (+popup-buffer-p)
                 (cond
                  (( string-match-p "popup" (buffer-name in-buffer)) t)
+                 (( string-match-p "Password-Store" (buffer-name in-buffer)) t)
                  (t nil)
                  )
                 )
@@ -451,6 +452,7 @@ Basic keymap with additional functions for moving floating screens around.
         (gcj/app-exwm/exwm-start-notification)
         (gcj/app-exwm/exwm-start-stickynotes)
         (gcj/app-exwm/exwm-start-wnck)
+        (gcj/app-exwm/discord)
         ;;    (gcj/app-exwm/exwm-start-owncloud)
         ;; (setq display-time-day-and-date t
         ;;       display-time-format "%a %b %d, %Y (%H:%M)"
