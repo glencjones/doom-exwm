@@ -110,9 +110,6 @@
 (add-hook! 'dired-mode-hook 'gcj/dired)
 #+END_SRC
 
-#+RESULTS:
-| dired-extra-startup | doom--recentf-add-dired-directory-h | doom-modeline-set-project-modeline | gcj/dired | +dired-disable-gnu-ls-flags-in-tramp-buffers-h | dired-omit-mode | all-the-icons-dired-mode | diff-hl-dired-mode-unless-remote | diredfl-mode |
-
 * Edwina configuration
 
 The following config works cleanly with Doom
